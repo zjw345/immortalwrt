@@ -5,6 +5,11 @@
 # FIT will be loaded at 0x02080000. Leave 16M for that, align it to 2M and load the kernel after it.
 KERNEL_LOADADDR := 0x03200000
 
+define Device/IfnameMigration
+  DEVICE_COMPAT_VERSION := 1.1
+  DEVICE_COMPAT_MESSAGE := Network interface names have been changed
+endef
+
 define Device/ezpro_mrkaio-m68s
   DEVICE_VENDOR := EZPRO
   DEVICE_MODEL := Mrkaio M68S
@@ -48,6 +53,15 @@ define Device/friendlyarm_nanopc-t4
 	brcmfmac-firmware-4356-sdio brcmfmac-nvram-4356-sdio
 endef
 TARGET_DEVICES += friendlyarm_nanopc-t4
+
+define Device/friendlyarm_nanopc-t6
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPC T6
+  SOC := rk3588
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-r8125
+endef
+TARGET_DEVICES += friendlyarm_nanopc-t6
 
 define Device/friendlyarm_nanopi-r2c
   DEVICE_VENDOR := FriendlyARM
@@ -139,6 +153,36 @@ define Device/friendlyarm_nanopi-r6s
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r6s
 
+define Device/hinlink_opc-h66k
+  DEVICE_VENDOR := Hinlink
+  DEVICE_MODEL := OPC-H66K
+  SOC := rk3568
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-ata-ahci-platform kmod-hwmon-pwmfan kmod-mt7921e \
+	kmod-r8125 wpad-basic-openssl
+endef
+TARGET_DEVICES += hinlink_opc-h66k
+
+define Device/hinlink_opc-h68k
+  DEVICE_VENDOR := Hinlink
+  DEVICE_MODEL := OPC-H68K
+  SOC := rk3568
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-ata-ahci-platform kmod-hwmon-pwmfan kmod-mt7921e \
+	kmod-r8125 wpad-basic-openssl
+endef
+TARGET_DEVICES += hinlink_opc-h68k
+
+define Device/hinlink_opc-h69k
+  DEVICE_VENDOR := Hinlink
+  DEVICE_MODEL := OPC-H69K
+  SOC := rk3568
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-ata-ahci-platform kmod-hwmon-pwmfan kmod-mt7916-firmware \
+	kmod-mt7921e kmod-r8125 kmod-usb-serial-option uqmi wpad-basic-openssl
+endef
+TARGET_DEVICES += hinlink_opc-h69k
+
 define Device/huake_guangmiao-g4c
   DEVICE_VENDOR := Huake-Cloud
   DEVICE_MODEL := GuangMiao G4C
@@ -159,6 +203,7 @@ endef
 TARGET_DEVICES += lunzn_fastrhino-r66s
 
 define Device/lunzn_fastrhino-r68s
+  $(Device/IfnameMigration)
   DEVICE_VENDOR := Lunzn
   DEVICE_MODEL := FastRhino R68S
   SOC := rk3568
@@ -174,6 +219,16 @@ define Device/pine64_rockpro64
   BOOT_FLOW := pine64-bin
 endef
 TARGET_DEVICES += pine64_rockpro64
+
+define Device/radxa_rock-5a
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := ROCK 5A
+  SOC := rk3588s
+  UBOOT_DEVICE_NAME := rock5a-rk3588s
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-r8125
+endef
+TARGET_DEVICES += radxa_rock-5a
 
 define Device/radxa_rock-5b
   DEVICE_VENDOR := Radxa
