@@ -5,8 +5,33 @@
 #include "msm8916-ufi.dtsi"
 
 / {
-	model = "ufi-001c/ufi-001b 4G Modem Stick";
+	model = "ufi-001c 4G Modem Stick";
 	compatible = "thwc,ufi001c", "qcom,msm8916";
+	leds: leds {
+		sim_sel {
+			label = "sim:sel";
+			gpios = <&msmgpio 2 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		sim_en {
+			label = "sim:en";
+			gpios = <&msmgpio 1 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		sim_sel2 {
+			label = "sim:sel2";
+			gpios = <&msmgpio 0 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		sim_en2 {
+			label = "sim:en2";
+			gpios = <&msmgpio 3 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+	};
 };
 
 &button_restart {
@@ -25,10 +50,10 @@
 	gpios = <&msmgpio 20 GPIO_ACTIVE_HIGH>;
 };
 
-&mpss {
+/*&mpss {
 	pinctrl-0 = <&sim_ctrl_default>;
 	pinctrl-names = "default";
-};
+};*/
 
 &button_default {
 	pins = "gpio37";
@@ -36,11 +61,11 @@
 };
 
 &gpio_leds_default {
-	pins = "gpio20", "gpio21", "gpio22";
+	pins = "gpio0","gpio1","gpio2","gpio3","gpio20", "gpio21", "gpio22";
 };
 
 /* This selects the external SIM card slot by default */
-&msmgpio {
+/*&msmgpio {
 	sim_ctrl_default: sim-ctrl-default-state {
 		esim-sel-pins {
 			pins = "gpio0", "gpio3";
@@ -60,4 +85,4 @@
 			output-high;
 		};
 	};
-};
+};*/
