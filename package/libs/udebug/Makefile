@@ -11,9 +11,9 @@ PKG_NAME:=udebug
 CMAKE_INSTALL:=1
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/udebug.git
-PKG_MIRROR_HASH:=baf437fb12b1faaf6c7eea3fea253c6d87c31b85f768b48d3984fe398e5b20b8
-PKG_SOURCE_DATE:=2023-11-20
-PKG_SOURCE_VERSION:=759d9404034b7da97b3950c806ace7296a0f7a12
+PKG_MIRROR_HASH:=3f7d32cdfbcbc7a854deefb916a1ee5c5bf59fa154c36fb1e5ff491dae874b8e
+PKG_SOURCE_DATE:=2023-11-30
+PKG_SOURCE_VERSION:=b613879cb049123dd9dc68d5e6aef60141ebe483
 PKG_ABI_VERSION:=$(call abi_version_str,$(PKG_SOURCE_DATE))
 
 PKG_LICENSE:=GPL-2.0
@@ -26,14 +26,14 @@ define Package/libudebug
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=udebug client library
-  DEPENDS:=+libubox
+  DEPENDS:=+libubox +libubus
 endef
 
 define Package/udebugd
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=OpenWrt debug service
-  DEPENDS:=+libudebug +libubus
+  DEPENDS:=+libudebug
 endef
 
 define Package/udebugd/conffiles
