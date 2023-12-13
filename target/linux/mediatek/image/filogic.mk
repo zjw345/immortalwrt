@@ -159,6 +159,44 @@ define Device/acer_predator-w6
 endef
 TARGET_DEVICES += acer_predator-w6
 
+define Device/adtran_smartrg
+  DEVICE_VENDOR := Adtran
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := e2fsprogs f2fsck mkf2fs kmod-hwmon-pwmfan \
+		     kmod-mt7986-firmware mt7986-wo-firmware
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+
+define Device/smartrg_sdg-8612
+$(call Device/adtran_smartrg)
+  DEVICE_MODEL := SDG-8612
+  DEVICE_DTS := mt7986a-smartrg-SDG-8612
+endef
+TARGET_DEVICES += smartrg_sdg-8612
+
+define Device/smartrg_sdg-8614
+$(call Device/adtran_smartrg)
+  DEVICE_MODEL := SDG-8614
+  DEVICE_DTS := mt7986a-smartrg-SDG-8614
+endef
+TARGET_DEVICES += smartrg_sdg-8614
+
+define Device/smartrg_sdg-8622
+$(call Device/adtran_smartrg)
+  DEVICE_MODEL := SDG-8622
+  DEVICE_DTS := mt7986a-smartrg-SDG-8622
+  DEVICE_PACKAGES += kmod-mt7915-firmware
+endef
+TARGET_DEVICES += smartrg_sdg-8622
+
+define Device/smartrg_sdg-8632
+$(call Device/adtran_smartrg)
+  DEVICE_MODEL := SDG-8632
+  DEVICE_DTS := mt7986a-smartrg-SDG-8632
+  DEVICE_PACKAGES += kmod-mt7915-firmware
+endef
+TARGET_DEVICES += smartrg_sdg-8632
+
 define Device/asus_tuf-ax4200
   DEVICE_VENDOR := ASUS
   DEVICE_MODEL := TUF-AX4200
@@ -196,7 +234,9 @@ define Device/bananapi_bpi-r3
   DEVICE_MODEL := BPi-R3
   DEVICE_DTS := mt7986a-bananapi-bpi-r3
   DEVICE_DTS_CONFIG := config-mt7986a-bananapi-bpi-r3
-  DEVICE_DTS_OVERLAY:= mt7986a-bananapi-bpi-r3-emmc mt7986a-bananapi-bpi-r3-nand mt7986a-bananapi-bpi-r3-nor mt7986a-bananapi-bpi-r3-sd
+  DEVICE_DTS_OVERLAY:= mt7986a-bananapi-bpi-r3-emmc mt7986a-bananapi-bpi-r3-nand \
+		       mt7986a-bananapi-bpi-r3-nor mt7986a-bananapi-bpi-r3-sd \
+		       mt7986a-bananapi-bpi-r3-respeaker-2mics
   DEVICE_DTS_DIR := $(DTS_DIR)/
   DEVICE_DTS_LOADADDR := 0x43f00000
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-gpio kmod-mt7986-firmware kmod-sfp kmod-usb3 e2fsprogs f2fsck mkf2fs mt7986-wo-firmware
@@ -622,6 +662,32 @@ define Device/jcg_q30-ubootmod
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
 endef
 TARGET_DEVICES += jcg_q30-ubootmod
+
+define Device/jdcloud_re-cp-03
+  DEVICE_VENDOR := JDCloud
+  DEVICE_MODEL := RE-CP-03
+  DEVICE_DTS := mt7986a-jdcloud-re-cp-03
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTC_FLAGS := --pad 4096
+  DEVICE_DTS_LOADADDR := 0x43f00000
+  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware \
+	e2fsprogs f2fsck mkf2fs
+  KERNEL_LOADADDR := 0x44000000
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  IMAGES := sysupgrade.itb
+  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
+	pad-rootfs | append-metadata
+  ARTIFACTS :=gpt.bin preloader.bin bl31-uboot.fip
+  ARTIFACT/gpt.bin := mt798x-gpt emmc
+  ARTIFACT/preloader.bin := mt7986-bl2 emmc-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot jdcloud_re-cp-03
+endef
+TARGET_DEVICES += jdcloud_re-cp-03
 
 define Device/livinet_zr-3020-common
   DEVICE_VENDOR := Livinet
