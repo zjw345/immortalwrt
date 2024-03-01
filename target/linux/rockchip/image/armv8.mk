@@ -10,6 +10,17 @@ define Device/IfnameMigration
   DEVICE_COMPAT_MESSAGE := Network interface names have been changed
 endef
 
+define Device/ariaboard_photonicat
+  DEVICE_VENDOR := Ariaboard
+  DEVICE_MODEL := Photonicat
+  SOC := rk3568
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := pcat-manager kmod-ath10k-sdio \
+	ath10k-firmware-qca9377-sdio wpad-basic-openssl \
+	kmod-usb-net-cdc-mbim kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
+endef
+TARGET_DEVICES += ariaboard_photonicat
+
 define Device/ezpro_mrkaio-m68s
   DEVICE_VENDOR := EZPRO
   DEVICE_MODEL := Mrkaio M68S
@@ -207,6 +218,26 @@ define Device/radxa_cm3-io
   BOOT_FLOW := pine64-img
 endef
 TARGET_DEVICES += radxa_cm3-io
+
+define Device/radxa_e25
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := E25
+  SOC := rk3568
+  DEVICE_DTS := rockchip/rk3568-radxa-e25
+  UBOOT_DEVICE_NAME := radxa-e25-rk3568
+  BOOT_FLOW := pine64-img
+  DEVICE_PACKAGES := kmod-r8125 kmod-ata-ahci-platform
+endef
+TARGET_DEVICES += radxa_e25
+
+define Device/radxa_rock-3a
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := ROCK 3A
+  SOC := rk3568
+  SUPPORTED_DEVICES := radxa,rock3a
+  BOOT_FLOW := pine64-img
+endef
+TARGET_DEVICES += radxa_rock-3a
 
 define Device/radxa_rock-5a
   DEVICE_VENDOR := Radxa
