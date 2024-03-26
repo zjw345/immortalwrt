@@ -171,6 +171,14 @@ define U-Boot/mt7622_ubnt_unifi-6-lr-v3
   FIP_COMPRESS:=1
 endef
 
+define U-Boot/mt7622_xiaomi_redmi-router-ax6s-ubi-loader
+  NAME:=Xiaomi Redmi Router AX6S (as UBI loader)
+  UBOOT_CONFIG:=mt7622_xiaomi_redmi-router-ax6s-ubi-loader
+  BUILD_DEVICES:=xiaomi_redmi-router-ax6s
+  BUILD_SUBTARGET:=mt7622
+  UBOOT_IMAGE:=u-boot.bin
+endef
+
 define U-Boot/mt7623a_unielec_u7623
   NAME:=UniElec U7623 (mt7623)
   BUILD_DEVICES:=unielec_u7623-02
@@ -252,6 +260,18 @@ define U-Boot/mt7981_jcg_q30-pro
   BUILD_SUBTARGET:=filogic
   BUILD_DEVICES:=jcg_q30-pro
   UBOOT_CONFIG:=mt7981_jcg_q30-pro
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
+define U-Boot/mt7981_nokia_ea0326gmp
+  NAME:=Qihoo 360T7
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=nokia_ea0326gmp
+  UBOOT_CONFIG:=mt7981_nokia_ea0326gmp
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -635,6 +655,7 @@ UBOOT_TARGETS := \
 	mt7622_ubnt_unifi-6-lr-v1 \
 	mt7622_ubnt_unifi-6-lr-v2 \
 	mt7622_ubnt_unifi-6-lr-v3 \
+	mt7622_xiaomi_redmi-router-ax6s-ubi-loader \
 	mt7623n_bpir2 \
 	mt7623a_unielec_u7623 \
 	mt7628_rfb \
@@ -644,6 +665,7 @@ UBOOT_TARGETS := \
 	mt7981_cmcc_rax3000m-nand \
 	mt7981_h3c_magic-nx30-pro \
 	mt7981_jcg_q30-pro \
+	mt7981_nokia_ea0326gmp \
 	mt7981_rfb-spim-nand \
 	mt7981_rfb-emmc \
 	mt7981_rfb-nor \
