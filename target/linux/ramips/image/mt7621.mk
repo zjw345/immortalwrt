@@ -99,13 +99,15 @@ endef
 
 define Build/znet-header
 	$(eval version=$(word 1,$(1)))
+	$(eval magic=$(if $(word 2,$(1)),$(word 2,$(1)),ZNET))
+	$(eval hdrlen=$(if $(word 3,$(1)),$(word 3,$(1)),0x30))
 	( \
 		data_size_crc="$$(dd if=$@ 2>/dev/null | gzip -c | \
 			tail -c 8 | od -An -N4 -tx4 --endian big | tr -d ' \n')"; \
 		payload_len="$$(dd if=$@ bs=4 count=1 skip=1 2>/dev/null | od -An -tdI --endian big | tr -d ' \n')"; \
 		payload_size_crc="$$(dd if=$@ ibs=1 count=$$payload_len 2>/dev/null | gzip -c | \
 			tail -c 8 | od -An -N4 -tx4 --endian big | tr -d ' \n')"; \
-		echo -ne "\x5A\x4E\x45\x54" | dd bs=4 count=1 conv=sync 2>/dev/null; \
+		echo -ne "$(magic)" | dd bs=4 count=1 conv=sync 2>/dev/null; \
 		echo -ne "$$(printf '%08x' $$(stat -c%s $@) | fold -s2 | xargs -I {} echo \\x{} | tac | tr -d '\n')" | \
 			dd bs=4 count=1 conv=sync 2>/dev/null; \
 		echo -ne "$$(echo $$data_size_crc | sed 's/../\\x&/g')" | \
@@ -114,7 +116,7 @@ define Build/znet-header
 			dd bs=4 count=1 conv=sync 2>/dev/null; \
 		echo -ne "\x12\x34\x56\x78" | dd bs=4 count=1 conv=sync 2>/dev/null; \
 		echo -ne "$(version)" | dd bs=28 count=1 conv=sync 2>/dev/null; \
-		dd if=/dev/zero bs=262096 count=1 conv=sync 2>/dev/null | tr "\000" "\377"; \
+		dd if=/dev/zero bs=$$((0x40000 - $(hdrlen))) count=1 conv=sync 2>/dev/null | tr "\000" "\377"; \
 		cat $@; \
 	) > $@.new
 	mv $@.new $@
@@ -770,6 +772,14 @@ define Device/dlink_dir-1960-a1
 endef
 TARGET_DEVICES += dlink_dir-1960-a1
 
+define Device/dlink_dir-2055-a1
+  $(Device/dlink_dir_nand_128m)
+  DEVICE_PACKAGES += -kmod-usb-ledtrig-usbport
+  DEVICE_MODEL := DIR-2055
+  DEVICE_VARIANT := A1
+endef
+TARGET_DEVICES += dlink_dir-2055-a1
+
 define Device/dlink_dir-2150-a1
   $(Device/dlink_dir_nand_128m)
   DEVICE_MODEL := DIR-2150
@@ -980,6 +990,33 @@ define Device/edimax_rg21s
 endef
 TARGET_DEVICES += edimax_rg21s
 
+define Device/elecom_wrc-gs
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  DEVICE_VENDOR := ELECOM
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size | \
+	elecom-wrc-gs-factory $$$$(ELECOM_HWNAME) 0.00 -N | \
+	append-string MT7621_ELECOM_$$$$(ELECOM_HWNAME)
+  DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
+endef
+
+define Device/elecom_wmc-m1267gst2
+  $(Device/elecom_wrc-gs)
+  IMAGE_SIZE := 24576k
+  DEVICE_MODEL := WMC-M1267GST2
+  ELECOM_HWNAME := WMC-DLGST2
+endef
+TARGET_DEVICES += elecom_wmc-m1267gst2
+
+define Device/elecom_wmc-s1267gs2
+  $(Device/elecom_wrc-gs)
+  IMAGE_SIZE := 24576k
+  DEVICE_MODEL := WMC-S1267GS2
+  ELECOM_HWNAME := WMC-DLGST2
+endef
+TARGET_DEVICES += elecom_wmc-s1267gs2
+
 define Device/elecom_wrc-1167ghbk2-s
   $(Device/dsa-migration)
   IMAGE_SIZE := 15488k
@@ -991,17 +1028,6 @@ define Device/elecom_wrc-1167ghbk2-s
   DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
 endef
 TARGET_DEVICES += elecom_wrc-1167ghbk2-s
-
-define Device/elecom_wrc-gs
-  $(Device/dsa-migration)
-  $(Device/uimage-lzma-loader)
-  DEVICE_VENDOR := ELECOM
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size | \
-	elecom-wrc-gs-factory $$$$(ELECOM_HWNAME) 0.00 -N | \
-	append-string MT7621_ELECOM_$$$$(ELECOM_HWNAME)
-  DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
-endef
 
 define Device/elecom_wrc-1167gs2-b
   $(Device/elecom_wrc-gs)
@@ -1103,6 +1129,27 @@ define Device/elecom_wrc-2533gst2
   ELECOM_HWNAME := WRC-2533GST2
 endef
 TARGET_DEVICES += elecom_wrc-2533gst2
+
+define Device/elecom_wrc-x1800gs
+  $(Device/nand)
+  DEVICE_VENDOR := ELECOM
+  DEVICE_MODEL := WRC-X1800GS
+  KERNEL := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | \
+	znet-header 4.04(XVF.1)b90 COMC 0x68 | elecom-product-header WRC-X1800GS
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_SIZE := 8192k
+  IMAGE_SIZE := 51456k
+ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+  ARTIFACTS := initramfs-factory.bin
+  ARTIFACT/initramfs-factory.bin := append-image-stage initramfs-kernel.bin | \
+	znet-header 4.04(XVF.1)b90 COMC 0x68 | elecom-product-header WRC-X1800GS | \
+	check-size
+endif
+  DEVICE_PACKAGES := kmod-mt7915-firmware
+endef
+TARGET_DEVICES += elecom_wrc-x1800gs
 
 define Device/etisalat_s3
   $(Device/sercomm_dxx)
@@ -1538,7 +1585,6 @@ TARGET_DEVICES += jcg_y2
 
 define Device/jdcloud_re-cp-02
   $(Device/dsa-migration)
-  $(Device/uimage-lzma-loader)
   IMAGE_SIZE := 16000k
   DEVICE_VENDOR := JDCloud
   DEVICE_MODEL := RE-CP-02
