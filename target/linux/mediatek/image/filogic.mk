@@ -1234,6 +1234,16 @@ define Device/routerich_ax3000
 endef
 TARGET_DEVICES += routerich_ax3000
 
+define Device/ruijie_rg-x60-pro
+  DEVICE_VENDOR := Ruijie
+  DEVICE_MODEL := RG-X60 Pro
+  DEVICE_DTS := mt7986a-ruijie-rg-x60-pro
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += ruijie_rg-x60-pro
+
 define Device/tplink_tl-xdr-common
   DEVICE_VENDOR := TP-Link
   DEVICE_DTS_DIR := ../dts
@@ -1278,6 +1288,16 @@ define Device/tplink_tl-xdr6088
 endef
 TARGET_DEVICES += tplink_tl-xdr6088
 
+define Device/tplink_tl-xtr8488
+  DEVICE_MODEL := TL-XTR8488
+  DEVICE_DTS := mt7986a-tplink-tl-xtr8488
+  $(call Device/tplink_tl-xdr-common)
+  DEVICE_PACKAGES += kmod-mt7915-firmware
+  ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot tplink_tl-xtr8488
+  ARTIFACT/preloader.bin := mt7986-bl2 spim-nand-ddr4
+endef
+TARGET_DEVICES += tplink_tl-xtr8488
+
 define Device/ubnt_unifi-6-plus
   DEVICE_VENDOR := Ubiquiti
   DEVICE_MODEL := UniFi 6 Plus
@@ -1309,6 +1329,17 @@ define Device/unielec_u7981-01-nand
   $(call Device/unielec_u7981-01)
 endef
 TARGET_DEVICES += unielec_u7981-01-nand
+
+define Device/wavlink_wl-wn586x3
+  DEVICE_VENDOR := WAVLINK
+  DEVICE_MODEL := WL-WN586X3
+  DEVICE_DTS := mt7981b-wavlink-wl-wn586x3
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  IMAGE_SIZE := 15424k
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += wavlink_wl-wn586x3
 
 define Device/xiaomi_mi-router-ax3000t
   DEVICE_VENDOR := Xiaomi
