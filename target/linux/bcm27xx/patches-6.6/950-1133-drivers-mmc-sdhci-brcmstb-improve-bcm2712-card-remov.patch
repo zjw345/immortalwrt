@@ -1,7 +1,7 @@
 From 5c0f94088e0694220a2f0d8ad6e8216b50a80f2e Mon Sep 17 00:00:00 2001
 From: Jonathan Bell <jonathan@raspberrypi.com>
 Date: Thu, 13 Jun 2024 15:01:02 +0100
-Subject: [PATCH 1133/1135] drivers: mmc: sdhci-brcmstb: improve bcm2712 card
+Subject: [PATCH 1133/1145] drivers: mmc: sdhci-brcmstb: improve bcm2712 card
  removal handling
 
 If the controller is being reset, then the CQE needs to be reset as well.
