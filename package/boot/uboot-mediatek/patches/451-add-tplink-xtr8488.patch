@@ -1,6 +1,6 @@
 --- /dev/null
-+++ b/configs/mt7981_abt_asr3000_defconfig
-@@ -0,0 +1,107 @@
++++ b/configs/mt7986_tplink_tl-xtr8488_defconfig
+@@ -0,0 +1,130 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -8,27 +8,30 @@
 +CONFIG_TEXT_BASE=0x41e00000
 +CONFIG_SYS_MALLOC_F_LEN=0x4000
 +CONFIG_NR_DRAM_BANKS=1
-+CONFIG_DEFAULT_DEVICE_TREE="mt7981-abt-asr3000"
++CONFIG_DEFAULT_DEVICE_TREE="mt7986a-tplink-tl-xtr8488"
 +CONFIG_OF_LIBFDT_OVERLAY=y
-+CONFIG_TARGET_MT7981=y
++CONFIG_TARGET_MT7986=y
 +CONFIG_PRE_CON_BUF_ADDR=0x4007EF00
 +CONFIG_DEBUG_UART_BASE=0x11002000
 +CONFIG_DEBUG_UART_CLOCK=40000000
 +CONFIG_SYS_LOAD_ADDR=0x46000000
++CONFIG_PCI=y
 +CONFIG_DEBUG_UART=y
++CONFIG_AHCI=y
 +CONFIG_FIT=y
 +CONFIG_BOOTDELAY=30
 +CONFIG_AUTOBOOT_KEYED=y
 +CONFIG_AUTOBOOT_MENU_SHOW=y
-+CONFIG_DEFAULT_FDT_FILE="mediatek/mt7981-abt-asr3000.dtb"
++CONFIG_DEFAULT_FDT_FILE="mediatek/mt7986a-tplink-tl-xtr8488.dtb"
 +CONFIG_LOGLEVEL=7
 +CONFIG_PRE_CONSOLE_BUFFER=y
 +CONFIG_LOG=y
 +CONFIG_BOARD_LATE_INIT=y
 +CONFIG_HUSH_PARSER=y
-+CONFIG_SYS_PROMPT="MT7981> "
++CONFIG_SYS_PROMPT="MT7986> "
 +CONFIG_CMD_CPU=y
 +CONFIG_CMD_LICENSE=y
++# CONFIG_CMD_BOOTEFI_BOOTMGR is not set
 +CONFIG_CMD_BOOTMENU=y
 +CONFIG_CMD_ASKENV=y
 +CONFIG_CMD_ERASEENV=y
@@ -36,9 +39,12 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MTD=y
 +CONFIG_CMD_PART=y
++CONFIG_CMD_PCI=y
++CONFIG_CMD_USB=y
 +CONFIG_CMD_DHCP=y
 +CONFIG_CMD_TFTPSRV=y
 +CONFIG_CMD_RARP=y
@@ -54,6 +60,10 @@
 +CONFIG_CMD_UUID=y
 +CONFIG_CMD_HASH=y
 +CONFIG_CMD_SMC=y
++CONFIG_CMD_EXT4=y
++CONFIG_CMD_FAT=y
++CONFIG_CMD_FS_GENERIC=y
++CONFIG_CMD_FS_UUID=y
 +CONFIG_CMD_UBI=y
 +CONFIG_CMD_UBI_RENAME=y
 +CONFIG_OF_EMBED=y
@@ -65,7 +75,7 @@
 +CONFIG_ENV_UBI_VOLUME_REDUND="ubootenv2"
 +CONFIG_SYS_RELOC_GD_ENV_ADDR=y
 +CONFIG_USE_DEFAULT_ENV_FILE=y
-+CONFIG_DEFAULT_ENV_FILE="abt_asr3000_env"
++CONFIG_DEFAULT_ENV_FILE="tplink_tl-xtr8488_env"
 +CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG=y
 +CONFIG_VERSION_VARIABLE=y
 +CONFIG_NET_RANDOM_ETHADDR=y
@@ -76,6 +86,9 @@
 +CONFIG_SERVERIP="192.168.1.254"
 +CONFIG_REGMAP=y
 +CONFIG_SYSCON=y
++CONFIG_SCSI_AHCI=y
++CONFIG_AHCI_PCI=y
++CONFIG_MTK_AHCI=y
 +CONFIG_BUTTON=y
 +CONFIG_BUTTON_GPIO=y
 +CONFIG_CLK=y
@@ -90,39 +103,53 @@
 +CONFIG_MTD_UBI_FASTMAP=y
 +CONFIG_PHY_FIXED=y
 +CONFIG_MEDIATEK_ETH=y
++CONFIG_PCIE_MEDIATEK=y
 +CONFIG_PHY=y
++CONFIG_PHY_MTK_TPHY=y
 +CONFIG_PINCTRL=y
 +CONFIG_PINCONF=y
-+CONFIG_PINCTRL_MT7981=y
++CONFIG_PINCTRL_MT7622=y
++CONFIG_PINCTRL_MT7986=y
 +CONFIG_POWER_DOMAIN=y
 +CONFIG_MTK_POWER_DOMAIN=y
 +CONFIG_DM_REGULATOR=y
 +CONFIG_DM_REGULATOR_FIXED=y
 +CONFIG_DM_REGULATOR_GPIO=y
++CONFIG_DM_PWM=y
++CONFIG_PWM_MTK=y
 +CONFIG_RAM=y
++CONFIG_SCSI=y
 +CONFIG_DM_SERIAL=y
 +CONFIG_MTK_SERIAL=y
 +CONFIG_SPI=y
 +CONFIG_DM_SPI=y
 +CONFIG_MTK_SPIM=y
++CONFIG_USB=y
++CONFIG_USB_XHCI_HCD=y
++CONFIG_USB_XHCI_MTK=y
++CONFIG_USB_STORAGE=y
 +CONFIG_ZSTD=y
 +CONFIG_HEXDUMP=y
 +CONFIG_LMB_MAX_REGIONS=64
 --- /dev/null
-+++ b/arch/arm/dts/mt7981-abt-asr3000.dts
-@@ -0,0 +1,176 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
++++ b/arch/arm/dts/mt7986a-tplink-tl-xtr8488.dts
+@@ -0,0 +1,196 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2021 MediaTek Inc.
++ * Author: Sam Shih <sam.shih@mediatek.com>
++ */
 +
 +/dts-v1/;
-+#include "mt7981.dtsi"
++#include "mt7986.dtsi"
 +#include <dt-bindings/gpio/gpio.h>
 +#include <dt-bindings/input/linux-event-codes.h>
 +
 +/ {
 +	#address-cells = <1>;
 +	#size-cells = <1>;
-+	model = "ABT ASR3000";
-+	compatible = "mediatek,mt7981", "mediatek,mt7981-rfb";
++	model = "TP-Link TL-XTR8488";
++	compatible = "mediatek,mt7986", "mediatek,mt7986-rfb";
 +
 +	chosen {
 +		stdout-path = &uart0;
@@ -131,60 +158,60 @@
 +
 +	memory@40000000 {
 +		device_type = "memory";
-+		reg = <0x40000000 0x10000000>;
++		reg = <0x40000000 0x40000000>;
 +	};
 +
-+	gpio-keys {
++	keys {
 +		compatible = "gpio-keys";
 +
-+
-+		button-reset {
++		reset {
 +			label = "reset";
 +			linux,code = <KEY_RESTART>;
-+			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
++			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 +		};
 +
-+		button-wps {
-+			label = "mesh";
-+			linux,code = <BTN_9>;
-+			linux,input-type = <EV_SW>;
-+			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
++		wps {
++			label = "wps";
++			linux,code = <KEY_WPS_BUTTON>;
++			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
++		};
++
++		turbo {
++			label = "turbo";
++			linux,code = <BTN_1>;
++			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 +		};
 +	};
 +
-+	gpio-leds {
++	leds {
 +		compatible = "gpio-leds";
 +
-+		led-0 {
-+			label = "red:wan";
-+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
-+			default-state = "off";
++		status_red {
++			label = "red:status";
++			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
 +		};
 +
-+		led-1 {
-+			label = "green:wan";
-+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
-+			default-state = "off";
++		status_green {
++			label = "green:status";
++			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
 +		};
 +
-+		mesh_led: led-2 {
-+			label = "green:mesh";
-+			gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
-+			default-state = "on";
-+		};
-+
-+		led-3 {
-+			label = "green:wlan2g";
-+			gpios = <&gpio 34 GPIO_ACTIVE_LOW>;
-+			default-state = "off";
-+		};
-+
-+		led-4 {
-+			label = "green:wlan5g";
-+			gpios = <&gpio 35 GPIO_ACTIVE_LOW>;
-+			default-state = "off";
++		turbo {
++			label = "green:turbo";
++			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
 +		};
 +	};
++};
++
++&uart0 {
++	mediatek,force-highspeed;
++	status = "okay";
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++	status = "disabled";
 +};
 +
 +&eth {
@@ -192,7 +219,7 @@
 +	mediatek,gmac-id = <0>;
 +	phy-mode = "2500base-x";
 +	mediatek,switch = "mt7531";
-+	reset-gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
++	reset-gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
 +
 +	fixed-link {
 +		speed = <2500>;
@@ -208,17 +235,44 @@
 +		};
 +
 +		conf-pu {
-+			pins = "SPI0_CS", "SPI0_HOLD", "SPI0_WP";
++			pins = "SPI2_CS", "SPI2_HOLD", "SPI2_WP";
 +			drive-strength = <MTK_DRIVE_8mA>;
 +			bias-pull-up = <MTK_PUPD_SET_R1R0_00>;
 +		};
 +
 +		conf-pd {
-+			pins = "SPI0_CLK", "SPI0_MOSI", "SPI0_MISO";
++			pins = "SPI2_CLK", "SPI2_MOSI", "SPI2_MISO";
 +			drive-strength = <MTK_DRIVE_8mA>;
 +			bias-pull-down = <MTK_PUPD_SET_R1R0_00>;
 +		};
 +	};
++
++	spic_pins: spi1-pins-func-1 {
++		mux {
++			function = "spi";
++			groups = "spi1_2";
++		};
++	};
++
++	uart1_pins: spi1-pins-func-3 {
++		mux {
++			function = "uart";
++			groups = "uart1_2";
++		};
++	};
++
++	pwm_pins: pwm0-pins-func-1 {
++		mux {
++			function = "pwm";
++			groups = "pwm0";
++		};
++	};
++};
++
++&pwm {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pwm_pins>;
++	status = "okay";
 +};
 +
 +&spi0 {
@@ -232,12 +286,12 @@
 +	dma_ext;
 +	ipm_design;
 +	support_quad;
-+	tick_dly = <2>;
++	tick_dly = <1>;
 +	sample_sel = <0>;
 +
-+	spi_nand@0 {
++	spi_nand@1 {
 +		compatible = "spi-nand";
-+		reg = <0>;
++		reg = <1>;
 +		spi-max-frequency = <52000000>;
 +
 +		partitions {
@@ -247,63 +301,51 @@
 +
 +			partition@0 {
 +				label = "bl2";
-+				reg = <0x0 0x100000>;
++				reg = <0x0 0x80000>;
 +			};
 +
 +			partition@100000 {
-+				label = "u-boot-env";
-+				reg = <0x100000 0x80000>;
++				label = "config";
++				reg = <0x100000 0x40000>;
 +			};
 +
-+			partition@180000 {
-+				label = "art";
-+				reg = <0x180000 0x100000>;
-+			};
-+
-+			partition@280000 {
++			partition@140000 {
 +				label = "factory";
-+				reg = <0x280000 0x100000>;
++				reg = <0x140000 0x40000>;
 +			};
 +
 +			partition@380000 {
 +				label = "fip";
-+				reg = <0x380000 0x0200000>;
++				reg = <0x380000 0x200000>;
 +			};
 +
 +			partition@580000 {
 +				label = "ubi";
-+				reg = <0x580000 0x7a80000>;
-+				compatible = "linux,ubi";
++				reg = <0x580000 0x7800000>;
 +			};
 +		};
 +	};
-+};
-+
-+&uart0 {
-+	mediatek,force-highspeed;
-+	status = "okay";
 +};
 +
 +&watchdog {
 +	status = "disabled";
 +};
 --- /dev/null
-+++ b/abt_asr3000_env
-@@ -0,0 +1,55 @@
++++ b/tplink_tl-xtr8488_env
+@@ -0,0 +1,57 @@
 +ipaddr=192.168.1.1
 +serverip=192.168.1.254
 +loadaddr=0x46000000
 +console=earlycon=uart8250,mmio32,0x11002000 console=ttyS0
-+bootargs=root=/dev/fit0 rootwait
 +bootcmd=if pstore check ; then run boot_recovery ; else run boot_ubi ; fi
 +bootconf=config-1
 +bootdelay=0
-+bootfile=immortalwrt-mediatek-filogic-abt_asr3000-initramfs-recovery.itb
-+bootfile_bl2=immortalwrt-mediatek-filogic-abt_asr3000-preloader.bin
-+bootfile_fip=immortalwrt-mediatek-filogic-abt_asr3000-bl31-uboot.fip
-+bootfile_upg=immortalwrt-mediatek-filogic-abt_asr3000-squashfs-sysupgrade.itb
-+bootled_pwr=green:mesh
-+bootled_rec=green:mesh
++bootfile=immortalwrt-mediatek-filogic-tplink_tl-xtr8488-initramfs-recovery.itb
++bootfile_bl2=immortalwrt-mediatek-filogic-tplink_tl-xtr8488-preloader.bin
++bootfile_fip=immortalwrt-mediatek-filogic-tplink_tl-xtr8488-bl31-uboot.fip
++bootfile_upg=immortalwrt-mediatek-filogic-tplink_tl-xtr8488-squashfs-sysupgrade.itb
++bootled_pwr=green:status
++bootled_rec=red:status
 +bootmenu_confirm_return=askenv - Press ENTER to return to menu ; bootmenu 60
 +bootmenu_default=0
 +bootmenu_delay=0
@@ -330,6 +372,8 @@
 +boot_tftp=tftpboot $loadaddr $bootfile && bootm $loadaddr#$bootconf
 +boot_tftp_write_fip=tftpboot $loadaddr $bootfile_fip && run mtd_write_fip && run reset_factory
 +boot_tftp_write_bl2=tftpboot $loadaddr $bootfile_bl2 && run mtd_write_bl2
++part_default=production
++part_recovery=recovery
 +reset_factory=ubi part ubi ; mw $loadaddr 0x0 0x800 ; ubi write $loadaddr ubootenv 0x800 ; ubi write $loadaddr ubootenv2 0x800
 +mtd_write_fip=mtd erase fip && mtd write fip $loadaddr
 +mtd_write_bl2=mtd erase bl2 && mtd write bl2 $loadaddr
@@ -341,7 +385,8 @@
 +ubi_remove_rootfs=ubi check rootfs_data && ubi remove rootfs_data
 +ubi_write_production=ubi check fit && ubi remove fit ; run ubi_remove_rootfs ; ubi create fit $filesize dynamic && ubi write $loadaddr fit $filesize
 +ubi_write_recovery=ubi check recovery && ubi remove recovery ; run ubi_remove_rootfs ; ubi create recovery $filesize dynamic && ubi write $loadaddr recovery $filesize
++ethaddr_factory=mtd read config 0x40080000 0x0 0x20000 && env readmem -b ethaddr 0x4008001c 0x6 ; setenv ethaddr_factory
 +_init_env=setenv _init_env ; run ubi_create_env ; saveenv ; saveenv
-+_firstboot=setenv _firstboot ; run _switch_to_menu ; run _init_env ; run boot_first
++_firstboot=setenv _firstboot ; run ethaddr_factory ; run _switch_to_menu ; run _init_env ; run boot_first
 +_switch_to_menu=setenv _switch_to_menu ; setenv bootdelay 3 ; setenv bootmenu_delay 3 ; setenv bootmenu_0 $bootmenu_0d ; setenv bootmenu_0d ; run _bootmenu_update_title
 +_bootmenu_update_title=setenv _bootmenu_update_title ; setenv bootmenu_title "$bootmenu_title       [33m$ver[0m"
