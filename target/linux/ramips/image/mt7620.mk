@@ -841,6 +841,7 @@ define Device/netgear_ex3700
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX3700/EX3800
   SUPPORTED_DEVICES += ex3700
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex3700
 
@@ -853,6 +854,7 @@ define Device/netgear_ex6120
   DEVICE_PACKAGES := kmod-mt76x2
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX6120
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex6120
 
@@ -865,6 +867,7 @@ define Device/netgear_ex6130
   DEVICE_PACKAGES := kmod-mt76x2
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := EX6130
+  DEFAULT := n
 endef
 TARGET_DEVICES += netgear_ex6130
 
@@ -1176,6 +1179,7 @@ define Device/sitecom_wlr-4100-v1-002
   DEVICE_MODEL := WLR-4100
   DEVICE_VARIANT := v1 002
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci uboot-envtools
+  DEFAULT := n
 endef
 TARGET_DEVICES += sitecom_wlr-4100-v1-002
 
@@ -1250,6 +1254,7 @@ define Device/tplink_archer-c5-v4
   DEVICE_VARIANT := v4
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
 	kmod-mt76x2 kmod-switch-rtl8367b
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c5-v4
 
@@ -1586,7 +1591,7 @@ TARGET_DEVICES += zte_q7
 define Device/zyxel_keenetic-lite-iii-a
   SOC := mt7620n
   IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := ZyXEL
+  DEVICE_VENDOR := Zyxel
   DEVICE_MODEL := Keenetic Lite III
   DEVICE_VARIANT := A
   IMAGES += factory.bin
@@ -1598,7 +1603,7 @@ TARGET_DEVICES += zyxel_keenetic-lite-iii-a
 define Device/zyxel_keenetic-omni
   SOC := mt7620n
   IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := ZyXEL
+  DEVICE_VENDOR := Zyxel
   DEVICE_MODEL := Keenetic Omni
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES += factory.bin
@@ -1611,7 +1616,7 @@ TARGET_DEVICES += zyxel_keenetic-omni
 define Device/zyxel_keenetic-omni-ii
   SOC := mt7620n
   IMAGE_SIZE := 7872k
-  DEVICE_VENDOR := ZyXEL
+  DEVICE_VENDOR := Zyxel
   DEVICE_MODEL := Keenetic Omni II
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES += factory.bin
@@ -1624,7 +1629,7 @@ TARGET_DEVICES += zyxel_keenetic-omni-ii
 define Device/zyxel_keenetic-viva
   SOC := mt7620a
   IMAGE_SIZE := 16064k
-  DEVICE_VENDOR := ZyXEL
+  DEVICE_VENDOR := Zyxel
   DEVICE_MODEL := Keenetic Viva
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
 	kmod-switch-rtl8367b

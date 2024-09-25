@@ -8,9 +8,9 @@ PKG_LICENSE_FILES:=
 
 PKG_SOURCE_URL:=https://github.com/openwrt/mt76
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-08-18
-PKG_SOURCE_VERSION:=0ac3041a9ac8f79aa0b859213bc223e0c471fcfb
-PKG_MIRROR_HASH:=758df7f12a240ab32b61f81e2982417c7449f1cb3b41d41de02e7af91314b195
+PKG_SOURCE_DATE:=2024-09-05
+PKG_SOURCE_VERSION:=65cc3daf2a332cc658e9f7438cdadde4392e672e
+PKG_MIRROR_HASH:=c29c4f883051a6360119156a03e010ac11573011b23d9e873f83c720600970e7
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_USE_NINJA:=0
@@ -332,6 +332,12 @@ define KernelPackage/mt7996-firmware
   DEPENDS+=+kmod-mt7996e
 endef
 
+define KernelPackage/mt7925-firmware
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7925 firmware
+  DEPENDS+=+kmod-mt7925e
+endef
+
 define KernelPackage/mt7925-common
   $(KernelPackage/mt76-default)
   TITLE:=MediaTek MT7925 wireless driver common code
@@ -345,7 +351,7 @@ define KernelPackage/mt7925u
   TITLE:=MediaTek MT7925U wireless driver
   DEPENDS+=+kmod-mt792x-usb +kmod-mt7925-common
   FILES:= $(PKG_BUILD_DIR)/mt7925/mt7925u.ko
-  AUTOLOAD:=$(call AutoProbe,mt7921u)
+  AUTOLOAD:=$(call AutoProbe,mt7925u)
 endef
 
 define KernelPackage/mt7925e
@@ -353,7 +359,7 @@ define KernelPackage/mt7925e
   TITLE:=MediaTek MT7925e wireless driver
   DEPENDS+=@PCI_SUPPORT +kmod-mt7925-common
   FILES:= $(PKG_BUILD_DIR)/mt7925/mt7925e.ko
-  AUTOLOAD:=$(call AutoProbe,mt7921e)
+  AUTOLOAD:=$(call AutoProbe,mt7925e)
 endef
 
 define Package/mt76-test
@@ -619,6 +625,14 @@ define KernelPackage/mt7922-firmware/install
 		$(1)/lib/firmware/mediatek
 endef
 
+define KernelPackage/mt7925-firmware/install
+        $(INSTALL_DIR) $(1)/lib/firmware/mediatek/mt7925
+	cp \
+		$(PKG_BUILD_DIR)/firmware/mt7925/WIFI_MT7925_PATCH_MCU_1_1_hdr.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin \
+		$(1)/lib/firmware/mediatek/mt7925
+endef
+
 define KernelPackage/mt7996-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/mediatek/mt7996
 	cp \
@@ -669,6 +683,7 @@ $(eval $(call KernelPackage,mt7981-firmware))
 $(eval $(call KernelPackage,mt7986-firmware))
 $(eval $(call KernelPackage,mt7921-firmware))
 $(eval $(call KernelPackage,mt7922-firmware))
+$(eval $(call KernelPackage,mt7925-firmware))
 $(eval $(call KernelPackage,mt792x-common))
 $(eval $(call KernelPackage,mt792x-usb))
 $(eval $(call KernelPackage,mt7921-common))
