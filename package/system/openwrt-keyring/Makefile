@@ -3,13 +3,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openwrt-keyring
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/immortalwrt/keyring.git
-PKG_SOURCE_DATE:=2021-11-13
-PKG_SOURCE_VERSION:=07d34f5cd9cc27aeaaa0c04358370ca1e9fbb0fc
-PKG_MIRROR_HASH:=f49f53b8065542c087c5e3c249fbb311a92f837c5c5df7532ceb9c3b7ddef565
+PKG_SOURCE_DATE:=2024-11-11
+PKG_SOURCE_VERSION:=f034bf5e9e6a28ad8fcfd82245d7812f561f79ef
+PKG_MIRROR_HASH:=4d92c04801e6bf63bc9e76c377bf2a24ffd7e7493d886fc29ae408cf5e849be5
 
 PKG_MAINTAINER:=John Crispin <john@phrozen.org>
 PKG_LICENSE:=GPL-2.0
@@ -30,11 +30,18 @@ endef
 
 Build/Compile=
 
+ifneq ($(CONFIG_USE_APK),)
+define Package/openwrt-keyring/install
+	$(INSTALL_DIR) $(1)/etc/apk/keys/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/apk/*.pem $(1)/etc/apk/keys/
+endef
+else
 define Package/openwrt-keyring/install
 	$(INSTALL_DIR) $(1)/etc/opkg/keys/
 	# Public usign key for unattended snapshot builds
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/usign/b5043e70f9a75cde $(1)/etc/opkg/keys/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/usign/8ead5420c4005b0d $(1)/etc/opkg/keys/
 endef
+endif
 
 $(eval $(call BuildPackage,openwrt-keyring))
