@@ -294,11 +294,11 @@ TARGET_DEVICES += alfa-network_quad-e4g
 
 define Device/ampedwireless_ally_common
   $(Device/nand)
+  $(Device/uimage-lzma-loader)
   DEVICE_VENDOR := Amped Wireless
   DEVICE_PACKAGES := kmod-mt7615-firmware
   IMAGE_SIZE := 32768k
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | uImage lzma -n 'flashable-initramfs' |\
-	edimax-header -s CSYS -m RN68 -f 0x001c0000 -S 0x01100000
+  KERNEL_INITRAMFS := $$(KERNEL) | edimax-header -s CSYS -m RN68 -f 0x001c0000 -S 0x01100000
 endef
 
 define Device/ampedwireless_ally-r1900k
@@ -687,6 +687,18 @@ define Device/comfast_cf-ew72-v2
     IMAGE/factory.bin := append-kernel | append-rootfs | pad-rootfs | check-size
 endef
 TARGET_DEVICES += comfast_cf-ew72-v2
+
+define Device/confiabits_mt7621-v1
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := Confiabits
+  DEVICE_MODEL := MT7621
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+	-uboot-envtools
+endef
+TARGET_DEVICES += confiabits_mt7621-v1
 
 define Device/cudy_m1800
   $(Device/dsa-migration)
@@ -1798,6 +1810,22 @@ define Device/jdcloud_re-sp-01b
 	kmod-mmc-mtk kmod-usb3 automount
 endef
 TARGET_DEVICES += jdcloud_re-sp-01b
+
+define Device/keenetic_kn-1910
+  $(Device/nand)
+  $(Device/uimage-lzma-loader)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 24903680
+  DEVICE_VENDOR := Keenetic
+  DEVICE_MODEL := KN-1910
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 \
+	kmod-usb-ledtrig-usbport automount
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | \
+	append-ubi | check-size | zyimage -d 0x801910 -v "KN-1910"
+endef
+TARGET_DEVICES += keenetic_kn-1910
 
 define Device/keenetic_kn-3010
   $(Device/dsa-migration)

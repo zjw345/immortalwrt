@@ -166,8 +166,14 @@ platform_do_upgrade() {
 		fw_setenv upgrade_available 1
 		nand_do_upgrade "$1"
 		;;
+	linksys,homewrk)
+		CI_UBIPART="rootfs"
+		remove_oem_ubi_volume ubi_rootfs
+		nand_do_upgrade "$1"
+		;;
 	linksys,mx4200v1|\
 	linksys,mx4200v2|\
+	linksys,mx4300|\
 	linksys,mx5300|\
 	linksys,mx8500)
 		boot_part="$(fw_printenv -n boot_part)"
