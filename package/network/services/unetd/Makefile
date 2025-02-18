@@ -10,9 +10,9 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=unetd
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/unetd.git
-PKG_SOURCE_DATE:=2025-01-26
-PKG_SOURCE_VERSION:=d13752814651c70d2afc71383612fafc835b631b
-PKG_MIRROR_HASH:=c9de65ae92af2498fcd9d55f9cd2017cb9ac79b03ed5816da21161aa24f226b9
+PKG_SOURCE_DATE:=2025-01-29
+PKG_SOURCE_VERSION:=082b5482b97f20dc4745bc3d645e33b584cc28e4
+PKG_MIRROR_HASH:=090e7dab3b9a3358706dcee4f1889b7a1f0bdf535f2d6a0580f4160e23ccf9cb
 
 PKG_LICENSE:=GPL-2.0
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -40,6 +40,7 @@ define Package/unetd/config
 		bool "VXLAN support"
 		depends on PACKAGE_unetd
 		depends on HAS_BPF_TOOLCHAIN
+		select NEED_BPF_TOOLCHAIN
 		default y
 
 endef
@@ -79,6 +80,7 @@ endef
 
 define Package/unetd/install
 	$(INSTALL_DIR) \
+		$(1)/usr/share/ucode/cli/modules \
 		$(1)/etc/unetd \
 		$(1)/lib/bpf \
 		$(1)/etc/init.d \
@@ -91,6 +93,7 @@ define Package/unetd/install
 		$(PKG_INSTALL_DIR)/usr/sbin/unet-tool \
 		$(1)/usr/sbin/
 	$(if $(CONFIG_UNETD_VXLAN_SUPPORT),$(INSTALL_DATA) $(PKG_BUILD_DIR)/mss-bpf.o $(1)/lib/bpf/mss.o)
+	$(INSTALL_DATA) ./files/unet.uc $(1)/usr/share/ucode/cli/modules
 	$(INSTALL_BIN) ./files/unetd.init $(1)/etc/init.d/unetd
 	$(INSTALL_BIN) ./files/unetd.sh $(1)/lib/netifd/proto
 endef
