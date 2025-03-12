@@ -700,6 +700,19 @@ define Device/confiabits_mt7621-v1
 endef
 TARGET_DEVICES += confiabits_mt7621-v1
 
+define Device/cudy_m1300-v2
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 15872k
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := M1300
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+	-uboot-envtools
+  UIMAGE_NAME := R15
+  SUPPORTED_DEVICES += R15
+endef
+TARGET_DEVICES += cudy_m1300-v2
+
 define Device/cudy_m1800
   $(Device/dsa-migration)
   DEVICE_VENDOR := Cudy
@@ -2005,6 +2018,8 @@ define Device/mercusys_mr70x-v1
   $(Device/tplink-safeloader)
   DEVICE_VENDOR := MERCUSYS
   DEVICE_MODEL := MR70X
+  DEVICE_ALT0_VENDOR := MERCUSYS
+  DEVICE_ALT0_MODEL := MR1800X
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
   TPLINK_BOARD_ID := MR70X
