@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-#include "msm8916-ufi.dtsi"
+#include "msm8916-mifi.dtsi"
 
 / {
 	model = "ufi-wf2 4G Modem Stick";
