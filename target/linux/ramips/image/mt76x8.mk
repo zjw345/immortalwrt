@@ -28,6 +28,22 @@ define Build/ravpower-wd009-factory
 	@mv $@.new $@
 endef
 
+define Build/append-teltonika-metadata
+  $(eval model_id=$(1))
+	echo \
+		'{ \
+			"metadata_version": "1.1", \
+			"compat_version": "1.0", \
+			"version": "", \
+			"device_code": [".*"], \
+			"hwver": [".*"], \
+			"batch": [".*"], \
+			"serial": [".*"], \
+			"supported_devices":["teltonika,$(model_id)"], \
+			"hw_support": { }, \
+			"hw_mods": { } \
+		}' | fwtool -I - $@
+endef
 
 define Device/7links_wlr-12xx
   IMAGE_SIZE := 7872k
@@ -322,6 +338,15 @@ define Device/hiwifi_hc5861b
 endef
 TARGET_DEVICES += hiwifi_hc5861b
 
+define Device/huasifei_shf283
+   IMAGE_SIZE := 16064k
+   DEVICE_VENDOR := Huasifei
+   DEVICE_MODEL := SHF283
+   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-cdc-mbim \
+	kmod-usb-net-qmi-wwan kmod-usb-net-rndis kmod-usb-serial-option uqmi
+endef
+TARGET_DEVICES += huasifei_shf283
+
 define Device/iptime_a3
   IMAGE_SIZE := 7936k
   UIMAGE_NAME := a3
@@ -488,6 +513,20 @@ define Device/mercury_mac1200r-v2
   SUPPORTED_DEVICES += mac1200rv2
 endef
 TARGET_DEVICES += mercury_mac1200r-v2
+
+define Device/mercusys_mb130-4g-v1
+$(Device/tplink-v2)
+  IMAGE_SIZE := 14912k
+  DEVICE_VENDOR := MERCUSYS
+  DEVICE_MODEL := MB130-4G
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-mt7663-firmware-ap kmod-mt7615e \
+                     kmod-usb-serial-option kmod-usb-net-cdc-ether
+  TPLINK_FLASHLAYOUT := 16MLmtk
+  IMAGES := sysupgrade.bin tftp-recovery.bin
+  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+endef
+TARGET_DEVICES += mercusys_mb130-4g-v1
 
 define Device/minew_g1-c
   IMAGE_SIZE := 15744k
@@ -1256,3 +1295,29 @@ define Device/zyxel_keenetic-extra-ii
 	check-size | zyimage -d 6162 -v "ZyXEL Keenetic Extra II"
 endef
 TARGET_DEVICES += zyxel_keenetic-extra-ii
+
+define Device/teltonika_rut200
+  DEVICE_VENDOR := Teltonika
+  DEVICE_MODEL := RUT200
+  DEVICE_VARIANT := v1-v4
+  IMAGE_SIZE := 15424k
+  BLOCKSIZE := 64k
+  DEVICE_PACKAGES +=kmod-mt76x2 kmod-usb2 kmod-usb-ohci kmod-usb-serial-option kmod-usb-net-cdc-ether
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-teltonika-metadata rut2m
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
+endef
+TARGET_DEVICES += teltonika_rut200
+
+define Device/teltonika_rut241
+  DEVICE_VENDOR := Teltonika
+  DEVICE_MODEL := RUT241
+  DEVICE_VARIANT := v1-v4
+  IMAGE_SIZE := 15424k
+  BLOCKSIZE := 64k
+  DEVICE_PACKAGES += uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci kmod-usb-serial-option
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-teltonika-metadata rut2m
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
+endef
+TARGET_DEVICES += teltonika_rut241
