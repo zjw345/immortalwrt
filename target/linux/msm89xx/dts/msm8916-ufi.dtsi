@@ -87,7 +87,6 @@
 };
 
 &mba_mem {
-        reg = <0 0x8ea00000 0 0x100000>;
 	status = "okay";
 };
 
@@ -135,7 +134,6 @@
 };
 
 &venus_mem {
-	reg = <0x0 0x8e500000 0x0 0x500000>;
 	status = "okay";
 };
 
@@ -148,12 +146,6 @@
 };
 
 &wcnss_mem {
-        reg = <0x0 0x8df00000 0x0 0x600000>;
-	status = "okay";
-};
-
-&gps_mem {
-        reg = <0x0 0x8bd00000 0x0 0x200000>;
 	status = "okay";
 };
 
