@@ -579,6 +579,7 @@ define KernelPackage/dsa-b53
   KCONFIG:=CONFIG_B53 \
   CONFIG_NET_DSA_TAG_BRCM \
   CONFIG_NET_DSA_TAG_BRCM_LEGACY \
+  CONFIG_NET_DSA_TAG_BRCM_LEGACY_FCS \
   CONFIG_NET_DSA_TAG_BRCM_PREPEND
   FILES:= \
   $(LINUX_DIR)/drivers/net/dsa/b53/b53_common.ko \
@@ -1252,11 +1253,9 @@ define KernelPackage/iavf
   TITLE:=Intel(R) Ethernet Adaptive Virtual Function support
   DEPENDS:=@PCI_SUPPORT +!LINUX_6_6:kmod-libie
   KCONFIG:= \
-       CONFIG_I40EVF \
        CONFIG_IAVF
   FILES:= \
        $(LINUX_DIR)/drivers/net/ethernet/intel/iavf/iavf.ko
-  AUTOLOAD:=$(call AutoProbe,i40evf iavf)
   AUTOLOAD:=$(call AutoProbe,iavf)
 endef
 
