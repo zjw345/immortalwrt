@@ -676,6 +676,18 @@ define Device/bolt_arion
 endef
 TARGET_DEVICES += bolt_arion
 
+define Device/c-life_xg1
+  $(Device/nand)
+  DEVICE_VENDOR := C-Life
+  DEVICE_MODEL := XG1
+  DEVICE_PACKAGES := kmod-mt7915-firmware kmod-usb3 kmod-usb-audio
+  IMAGE_SIZE := 254720k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size
+endef
+TARGET_DEVICES += c-life_xg1
+
 define Device/comfast_cf-e390ax
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
@@ -2887,6 +2899,20 @@ define Device/tplink_ex220-v1
   IMAGE_SIZE := 15744k
 endef
 TARGET_DEVICES += tplink_ex220-v1
+
+define Device/tplink_ex220-v2
+  $(Device/dsa-migration)
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := EX220
+  DEVICE_VARIANT := v2
+  DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
+  TPLINK_BOARD_ID := EX220-V2
+  KERNEL_LOADADDR := 0x82000000
+  KERNEL := kernel-bin | relocate-kernel $(loadaddr-y) | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  IMAGE_SIZE := 15744k
+endef
+TARGET_DEVICES += tplink_ex220-v2
 
 define Device/tplink_mr600-v2-eu
   $(Device/dsa-migration)

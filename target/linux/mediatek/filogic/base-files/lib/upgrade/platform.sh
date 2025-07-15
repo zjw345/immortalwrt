@@ -96,6 +96,9 @@ platform_do_upgrade() {
 	qihoo,360t7|\
 	routerich,ax3000-ubootmod|\
 	snr,snr-cpe-ax2|\
+	tplink,tl-7dr7230-v1|\
+	tplink,tl-7dr7230-v2|\
+	tplink,tl-7dr7250-v1|\
 	tplink,tl-xdr4288|\
 	tplink,tl-xdr6086|\
 	tplink,tl-xdr6088|\
@@ -115,6 +118,7 @@ platform_do_upgrade() {
 	glinet,gl-x3000|\
 	glinet,gl-xe3000|\
 	huasifei,wh3000-emmc|\
+	huasifei,wh3000-pro|\
 	smartrg,sdg-8612|\
 	smartrg,sdg-8614|\
 	smartrg,sdg-8622|\
@@ -155,6 +159,12 @@ platform_do_upgrade() {
 	tplink,archer-ax80-v1|\
 	tplink,re6000xd)
 		CI_UBIPART="ubi0"
+		nand_do_upgrade "$1"
+		;;
+	tplink,fr365-v1)
+		CI_UBIPART="ubi"
+		CI_KERNPART="kernel"
+		CI_ROOTPART="rootfs"
 		nand_do_upgrade "$1"
 		;;
 	nradio,c8-668gl)
@@ -234,6 +244,9 @@ platform_check_image() {
 	netcore,n60-pro|\
 	qihoo,360t7|\
 	routerich,ax3000-ubootmod|\
+	tplink,tl-7dr7230-v1|\
+	tplink,tl-7dr7230-v2|\
+	tplink,tl-7dr7250-v1|\
 	tplink,tl-xdr4288|\
 	tplink,tl-xdr6086|\
 	tplink,tl-xdr6088|\
@@ -276,6 +289,7 @@ platform_copy_config() {
 	glinet,gl-x3000|\
 	glinet,gl-xe3000|\
 	huasifei,wh3000-emmc|\
+	huasifei,wh3000-pro|\
 	jdcloud,re-cp-03|\
 	nradio,c8-668gl|\
 	smartrg,sdg-8612|\
