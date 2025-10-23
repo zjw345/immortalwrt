@@ -1,0 +1,149 @@
+#
+# GitHub Actions - 编译 ImmortalWrt 固件
+#
+# Workflow 说明:
+# 1. 将您正确的 .config 文件上传到仓库根目录。
+# 2. 在 Actions 页面手动触发此任务。
+# 3. 编译完成后，在 Actions 任务页面下方的 "Artifacts" 区域下载固件。
+#
+# Ref: https://github.com/P3TERX/Actions-OpenWrt
+#
+
+name: Build ImmortalWrt for msm8916
+
+on:
+  # 允许在 Actions 页面手动触发工作流
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+env:
+  # 源码仓库和分支 - 使用 ${{ github.repository }} 动态获取您自己的仓库地址
+  REPO_URL: https://github.com/${{ github.repository }}
+  REPO_BRANCH: master
+
+  # 您上传的配置文件名
+  CONFIG_FILE: jz02.config
+
+  # 自定义脚本文件名 (如果不存在，脚本会自动跳过)
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+
+  # Artifacts (编译产物) 上传设置
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+
+  # 时区设置
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    # 使用最新版的 Ubuntu 虚拟机
+    runs-on: ubuntu-22.04
+
+    steps:
+    # 步骤1: 检出当前仓库代码 (为了获取 .config 和 workflow 文件)
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 步骤2: 初始化编译环境，安装依赖
+    - name: Initialize build environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git gperf libncurses5-dev libssl-dev libxml-parser-perl python3 python3-pip python3-distutils python3-setuptools rsync subversion swig texinfo unzip wget zlib1g-dev file
+        sudo timedatectl set-timezone "$TZ"
+
+    # 步骤3: 克隆源码 (使用 --depth 1 进行浅克隆，速度更快)
+    - name: Clone source code
+      run: |
+        git clone --depth 1 ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
+
+    # 步骤4: 更新并安装 Feeds
+    - name: Update and install feeds
+      run: |
+        cd openwrt
+        # 如果有自定义 feeds.conf.default, 则覆盖
+        if [ -f ../feeds.conf.default ]; then
+          mv ../feeds.conf.default ./feeds.conf.default
+        fi
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    # 步骤5: 加载自定义配置并使其生效 (核心步骤)
+    - name: Load custom configuration
+      run: |
+        # 将仓库中的 .config 文件复制到源码目录
+        # 这是整个流程中最关键的一步
+        [ -e ../${{ env.CONFIG_FILE }} ] && mv ../${{ env.CONFIG_FILE }} openwrt/.config
+        
+        # 进入源码目录
+        cd openwrt
+        
+        # 运行 make defconfig，让系统读取 .config 并自动补全所有依赖项
+        # 这会生成一个完整的、可供编译的 .config 文件，避免了平台被重置的问题
+        make defconfig
+
+    # 步骤6: (可选) 运行自定义脚本 Part 1
+    - name: Run custom script part 1 (Before build)
+      run: |
+        if [ -f ../${{ env.DIY_P1_SH }} ]; then
+          cd openwrt
+          chmod +x ../${{ env.DIY_P1_SH }}
+          ../${{ env.DIY_P1_SH }}
+        fi
+
+    # 步骤7: (可选) 如果需要，通过 SSH 连接到 Actions 进行调试
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: github.event.inputs.ssh == 'true'
+
+    # 步骤8: 下载编译所需的软件包
+    - name: Download packages
+      run: |
+        cd openwrt
+        make download -j$(nproc)
+        # 清理可能下载失败的小文件
+        find dl -size -1024c -exec rm -f {} \;
+
+    # 步骤9: 编译固件
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo "Starting firmware compilation with $(nproc) threads..."
+        # 使用 robust 的编译命令，如果多线程失败则尝试单线程
+        make -j$(nproc) || make -j1 V=s
+        
+        # 设置输出变量和环境变量，用于后续步骤
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "FIRMWARE_PATH=$(ls bin/targets/msm89xx/msm8916/*sysupgrade.bin | head -n 1)" >> $GITHUB_ENV
+
+    # 步骤10: 整理并上传固件到 Artifacts
+    - name: Organize and upload firmware
+      uses: actions/upload-artifact@v4
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true'
+      with:
+        name: ImmortalWrt_Firmware_msm8916_${{ env.REPO_BRANCH }}_${{ env.FILE_DATE }}
+        # path 支持通配符，更简洁
+        path: openwrt/bin/targets/msm89xx/msm8916/*sysupgrade.bin
+
+    # 步骤11: 创建 Release 并上传固件
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # 使用日期作为 Release 标签
+        tag_name: "release-${{ env.REPO_BRANCH }}-${{ env.FILE_DATE }}"
+        body: |
+          - Target: msm89xx/msm8916
+          - Branch: ${{ env.REPO_BRANCH }}
+          - Compiled: $(date -u)
+        # 上传固件文件
+        files: ${{ env.FIRMWARE_PATH }}
