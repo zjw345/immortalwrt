@@ -38,6 +38,7 @@ friendlyarm,nanopi-r3s|\
 friendlyarm,nanopi-r5c|\
 lunzn,fastrhino-r66s|\
 mmbox,anas3035|\
+nlnet,xiguapi-v3|\
 radxa,e25|\
 sinovoip,rk3568-bpi-r2pro|\
 xunlong,orangepi-5-plus)
@@ -65,6 +66,7 @@ friendlyarm,nanopi-r4s|\
 friendlyarm,nanopi-r4se|\
 friendlyarm,nanopi-r4s-enterprise|\
 friendlyarm,nanopi-r6c|\
+friendlyarm,nanopi-r76s|\
 radxa,e52c|\
 radxa,rock-5-itx|\
 radxa,rock-5t)

@@ -239,6 +239,15 @@ define Device/friendlyarm_nanopi-r6s
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r6s
 
+define Device/friendlyarm_nanopi-r76s
+  $(Device/rk3576)
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi R76S
+  UBOOT_DEVICE_NAME := generic-rk3576
+  DEVICE_PACKAGES := kmod-r8125 kmod-rtw88-8822cs wpad-openssl
+endef
+TARGET_DEVICES += friendlyarm_nanopi-r76s
+
 define Device/huake_guangmiao-g4c
   $(Device/rk3399)
   DEVICE_VENDOR := Huake-Cloud
@@ -283,6 +292,14 @@ define Device/mmbox_anas3035
   DEVICE_PACKAGES := kmod-r8125 kmod-ata-ahci-dwc kmod-hwmon-pwmfan kmod-hwmon-drivetemp
 endef
 TARGET_DEVICES += mmbox_anas3035
+
+define Device/nlnet_xiguapi-v3
+  $(Device/rk3568)
+  DEVICE_VENDOR := NLnet
+  DEVICE_MODEL := XiGuaPi V3
+  DEVICE_PACKAGES := kmod-mt7916-firmware wpad-openssl kmod-usb-net-rndis uqmi
+endef
+TARGET_DEVICES += nlnet_xiguapi-v3
 
 define Device/pine64_rock64
   $(Device/rk3328)

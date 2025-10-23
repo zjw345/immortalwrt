@@ -403,21 +403,6 @@ void rtldsa_931x_set_receive_management_action(int port, rma_ctrl_t type, action
 	}
 }
 
-static u64 rtl931x_traffic_get(int source)
-{
-	u64 v;
-	struct table_reg *r = rtl_table_get(RTL9310_TBL_2, 1);
-
-	rtl_table_read(r, source);
-	v = sw_r32(rtl_table_data(r, 0));
-	v <<= 32;
-	v |= sw_r32(rtl_table_data(r, 1));
-	v >>= 7;
-	rtl_table_release(r);
-
-	return v;
-}
-
 /* Enable traffic between a source port and a destination port matrix */
 static void rtl931x_traffic_set(int source, u64 dest_matrix)
 {
@@ -1400,11 +1385,6 @@ static void rtl931x_pie_init(struct rtl838x_switch_priv *priv)
 
 }
 
-static int rtl931x_l3_setup(struct rtl838x_switch_priv *priv)
-{
-	return 0;
-}
-
 static void rtl931x_vlan_port_keep_tag_set(int port, bool keep_outer, bool keep_inner)
 {
 	sw_w32(FIELD_PREP(RTL931X_VLAN_PORT_TAG_EGR_OTAG_STS_MASK,
@@ -1615,7 +1595,6 @@ const struct rtl838x_reg rtl931x_reg = {
 	.stat_port_std_mib = 0,  /* Not defined */
 	.traffic_enable = rtl931x_traffic_enable,
 	.traffic_disable = rtl931x_traffic_disable,
-	.traffic_get = rtl931x_traffic_get,
 	.traffic_set = rtl931x_traffic_set,
 	.l2_ctrl_0 = RTL931X_L2_CTRL,
 	.l2_ctrl_1 = RTL931X_L2_AGE_CTRL,
@@ -1664,7 +1643,6 @@ const struct rtl838x_reg rtl931x_reg = {
 	.pie_rule_add = rtl931x_pie_rule_add,
 	.pie_rule_rm = rtl931x_pie_rule_rm,
 	.l2_learning_setup = rtl931x_l2_learning_setup,
-	.l3_setup = rtl931x_l3_setup,
 	.led_init = rtldsa_931x_led_init,
 	.enable_learning = rtldsa_931x_enable_learning,
 	.enable_flood = rtldsa_931x_enable_flood,
