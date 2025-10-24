@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  builder:
+    # 使用我们之前构建好的镜像
+    image: openwrt-builder:22.04
+    
+    # 容器的主机名
+    hostname: openwrt-builder
+    
+    # 保持容器在后台运行，即使没有前台进程
+    tty: true
+    stdin_open: true
+    
+    # 定义卷挂载，实现数据持久化和文件同步
+    volumes:
+      # 将整个 workspace 目录挂载到容器的 /workspace
+      - ./workspace:/workspace
+      
+    # 设置容器内的工作目录
+    working_dir: /workspace/source
