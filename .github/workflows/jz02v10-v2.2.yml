@@ -6,7 +6,7 @@
 #     此方法比 'make defconfig' 更为健壮，能有效避免因 CI 环境中 stdin 问题导致的编译中断。
 # ======================================================================================
 
-name: JZ02V10 Builder (Final Fix)
+name: JZ02V10 v2.2 (Final Fixyes)
 
 on:
   workflow_dispatch:
