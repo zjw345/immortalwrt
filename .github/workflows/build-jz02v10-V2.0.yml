@@ -1,0 +1,169 @@
+# ======================================================================================
+# JZ02V10 GitHub Actions Workflow - by Gemini Pro
+#
+# 参照 ufi003 成功项目的构建方法进行适配，确保编译的稳定性和成功率。
+# 关键变更:
+# - 采用 "厨房水槽" 式的依赖安装，确保所有可能的编译工具都已就绪。
+# - 在 /mnt/workdir 目录进行克隆和编译，以解决 GitHub Runner 默认工作区空间不足的问题。
+# - 环境变量已适配为 jz02v10 项目的配置文件。
+# ======================================================================================
+
+name: JZ02V10 Builder 
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh_action:
+        description: '在编译结束后（无论成功或失败），通过 tmate 开启 SSH 会话进行调试。'
+        required: false
+        default: 'false'
+
+env:
+  REPO_URL: https://github.com/lkiuyu/immortalwrt
+  REPO_BRANCH: master
+  CONFIG_FILE: jz02.config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: 1. 检出仓库代码 (Checkout)
+      uses: actions/checkout@v4
+
+    - name: 2. 准备编译环境 (Initialize Environment)
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        echo "::group::安装编译依赖 (ufi003 完整方案)"
+        sudo -E apt-get -qq update
+        # 采用与 ufi003 项目相同的'厨房水槽'式安装方法，确保所有依赖都存在
+        sudo -E apt-get -qq install ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lrzsz mkisofs msmtp ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev mkbootimg img2simg
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        echo "::endgroup::"
+
+        echo "::group::设置时区并创建编译目录"
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /mnt/workdir
+        sudo chown $USER:$GROUPS /mnt/workdir
+        echo "::endgroup::"
+
+    - name: 3. 克隆 ImmortalWrt 源码 (Clone Source Code)
+      working-directory: /mnt/workdir
+      run: |
+        echo "当前工作目录: $PWD"
+        df -hT $PWD
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
+        # 创建软链接，方便后续步骤引用
+        ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
+    - name: 4. 加载自定义内容 Part 1 (Load Customizations Before Feeds)
+      run: |
+        # 检查自定义脚本是否存在并赋予执行权限
+        if [ -f "$GITHUB_WORKSPACE/$DIY_P1_SH" ]; then
+          chmod +x $GITHUB_WORKSPACE/$DIY_P1_SH
+          cd openwrt
+          # 执行脚本
+          $GITHUB_WORKSPACE/$DIY_P1_SH
+        else
+          echo "未找到 diy-part1.sh，跳过。"
+        fi
+        
+    - name: 5. 更新与安装 Feeds (Update & Install Feeds)
+      working-directory: ./openwrt
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: 6. 加载自定义内容 Part 2 (Load Customizations After Feeds)
+      run: |
+        # 将配置文件移动到正确位置
+        if [ -f "$GITHUB_WORKSPACE/$CONFIG_FILE" ]; then
+          mv $GITHUB_WORKSPACE/$CONFIG_FILE openwrt/.config
+          echo "已加载 .config 文件。"
+        else
+          echo "::error::未找到配置文件: ${CONFIG_FILE}！"
+          exit 1
+        fi
+        
+        # 检查自定义脚本是否存在并赋予执行权限
+        if [ -f "$GITHUB_WORKSPACE/$DIY_P2_SH" ]; then
+          chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
+          cd openwrt
+          # 执行脚本
+          $GITHUB_WORKSPACE/$DIY_P2_SH
+        else
+          echo "未找到 diy-part2.sh，跳过。"
+        fi
+
+    - name: 7. 预下载软件包源码 (Download Packages)
+      working-directory: ./openwrt
+      run: |
+        make defconfig
+        make download -j$(nproc)
+        find dl -size -1k -exec rm -f {} \;
+
+    - name: 8. 编译固件 (Compile Firmware)
+      id: compile
+      working-directory: ./openwrt
+      run: |
+        echo "开始使用 $(nproc) 线程编译..."
+        # 优先多线程编译，失败后自动转为单线程详细日志模式，便于排错
+        make -j$(nproc) || make -j1 V=s
+        
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "FIRMWARE_PATH=$(ls bin/targets/msm89xx/msm8916/*-sysupgrade.bin 2>/dev/null | head -n 1)" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: 9. SSH 远程调试 (按需触发)
+      if: (failure() || success()) && inputs.ssh_action == 'true'
+      uses: mxschmitt/action-tmate@v3
+      with:
+        working-directory: ./openwrt
+        
+    - name: 10. 整理并上传产物 (Organize and Upload Artifacts)
+      if: success() && env.UPLOAD_FIRMWARE == 'true'
+      id: organize
+      run: |
+        FIRMWARE_DIR="openwrt/bin/targets/msm89xx/msm8916"
+        if [ -d "$FIRMWARE_DIR" ]; then
+          cd $FIRMWARE_DIR
+          rm -rf packages
+          echo "FIRMWARE_UPLOAD_DIR=$PWD" >> $GITHUB_ENV
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "产物目录: $PWD"
+          ls -l
+        else
+          echo "::error::编译成功但未找到产物目录！"
+          exit 1
+        fi
+
+    - name: 上传固件到 Actions Artifacts
+      if: steps.organize.outputs.status == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ImmortalWrt_JZ02V10_${{ github.run_id }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE_UPLOAD_DIR }}
+
+    - name: 生成 Release 标签
+      id: tag
+      if: success() && env.UPLOAD_RELEASE == 'true'
+      run: |
+        echo "release_tag=JZ02V10-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: 上传固件到 Release
+      if: steps.tag.outputs.status == 'success'
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body: "JZ02V10 固件自动构建版本"
+        files: ${{ env.FIRMWARE_UPLOAD_DIR }}/*sysupgrade.bin
