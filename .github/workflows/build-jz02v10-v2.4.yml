@@ -8,7 +8,7 @@
 #     - 采用更健壮的编译命令，失败后自动降级重试。
 # ======================================================================================
 
-name: JZ02V10 v2.1 (Fix Interactive Prompt)
+name: JZ02V10 v2.4 (jz02v10-1.configfrom2.3)
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ on:
 env:
   REPO_URL: https://github.com/lkiuyu/immortalwrt
   REPO_BRANCH: master
-  CONFIG_FILE: jz02.config
+  CONFIG_FILE: jz02v10-1.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_FIRMWARE: true
