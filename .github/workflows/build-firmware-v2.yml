@@ -1,0 +1,176 @@
+#
+# ======================================================================================
+# 最终优化版 GitHub Actions Workflow - by Gemini Pro Deep Reasoning
+# 目标：为 msm8916 平台稳定、透明地编译 ImmortalWrt 固件
+#
+# 融合策略:
+# 1. 强制单线程、详细日志 (`make -j1 V=s`)，保证稳定性和可追溯性。 (我的核心策略)
+# 2. 采用透明、手动的磁盘清理方式，不依赖第三方 Action。 (我的核心策略)
+# 3. 采用精简的核心依赖安装，加快环境准备速度。 (我的核心策略)
+# 4. 采用 `make defconfig` 进行标准化配置，行为可预测。 (我的核心策略)
+# 5. 引入 `make download` 预下载步骤，优化网络稳定性。 (采纳您的脚本优点)
+# 6. 引入严格的错误检查和清晰的日志分组，便于排错。 (我的优化策略)
+# 7. 保持对 diy 脚本和自定义 feeds 的良好支持结构。 (通用性设计)
+# ======================================================================================
+#
+
+name: Build ImmortalWrt for msm8916 (Optimized & Robust)
+
+on:
+  # 允许您在 Actions 标签页手动触发此工作流
+  workflow_dispatch:
+    inputs:
+      ssh_action:
+        description: '在编译结束后（无论成功或失败），通过 tmate 开启 SSH 会话进行调试。'
+        required: false
+        default: 'false'
+
+env:
+  # 源码仓库 - 关键修正：使用经过验证支持 msm8916 的仓库
+  REPO_URL: https://github.com/lkiuyu/immortalwrt
+  REPO_BRANCH: master
+
+  # 您的配置文件和自定义脚本 - 请确保它们在您仓库的根目录
+  CONFIG_FILE: jz02.config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: 1. 检出仓库代码 (Checkout)
+      uses: actions/checkout@v4
+      # 此步骤获取您仓库中的 .config 和 diy-*.sh 文件
+
+    - name: 2. 准备编译环境 (Initialize Environment)
+      run: |
+        echo "::group::安装核心编译依赖"
+        sudo apt-get update
+        sudo apt-get install -y build-essential flex bison g++ gawk gcc-multilib g++-multilib \
+        gettext git-core libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev \
+        file wget
+        echo "::endgroup::"
+
+        echo "::group::清理 Runner 磁盘空间"
+        echo "清理前空间:"
+        df -h
+        sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
+        echo "清理后空间:"
+        df -h
+        echo "::endgroup::"
+        
+        sudo timedatectl set-timezone "$TZ"
+
+    - name: 3. 克隆并准备源码 (Clone & Prepare Source)
+      id: source
+      run: |
+        echo "::group::克隆 ImmortalWrt 源码"
+        git clone --depth 1 -b $REPO_BRANCH $REPO_URL immortalwrt
+        cd immortalwrt
+        echo "SOURCE_DIR=$(pwd)" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+        
+        echo "::group::更新与安装 Feeds"
+        # 如果仓库中有 feeds.conf.default，则使用它
+        if [ -f "${{ github.workspace }}/feeds.conf.default" ]; then
+          cp "${{ github.workspace }}/feeds.conf.default" ./immortalwrt/
+        fi
+        ./immortalwrt/scripts/feeds update -a
+        ./immortalwrt/scripts/feeds install -a
+        echo "::endgroup::"
+
+    - name: 4. 加载自定义内容并标准化配置 (Load Customization & Finalize Config)
+      run: |
+        cd immortalwrt
+        
+        echo "::group::执行自定义脚本 Part 1 (diy-part1.sh)"
+        if [ -f "${{ github.workspace }}/${{ env.DIY_P1_SH }}" ]; then
+          chmod +x "${{ github.workspace }}/${{ env.DIY_P1_SH }}"
+          "${{ github.workspace }}/${{ env.DIY_P1_SH }}"
+        else
+          echo "未找到 diy-part1.sh，跳过。"
+        fi
+        echo "::endgroup::"
+
+        echo "::group::加载自定义 .config 文件"
+        if [ -f "${{ github.workspace }}/${{ env.CONFIG_FILE }}" ]; then
+          cp "${{ github.workspace }}/${{ env.CONFIG_FILE }}" .config
+          echo ".config 文件已加载。"
+        else
+          echo "::error::未找到配置文件: ${CONFIG_FILE}！ 编译无法继续。"
+          exit 1
+        fi
+        echo "::endgroup::"
+        
+        echo "::group::执行自定义脚本 Part 2 (diy-part2.sh)"
+        if [ -f "${{ github.workspace }}/${{ env.DIY_P2_SH }}" ]; then
+          chmod +x "${{ github.workspace }}/${{ env.DIY_P2_SH }}"
+          "${{ github.workspace }}/${{ env.DIY_P2_SH }}"
+        else
+          echo "未找到 diy-part2.sh，跳过。"
+        fi
+        echo "::endgroup::"
+
+        echo "::group::标准化配置文件 (make defconfig)"
+        make defconfig
+        echo "配置文件已标准化并准备就绪。"
+        echo "::endgroup::"
+
+    - name: 5. 预下载所有软件包源码 (Download Packages)
+      run: |
+        cd immortalwrt
+        echo "::group::开始预下载所有软件包源码"
+        make download -j8 # 下载可以使用多线程，不消耗太多内存
+        find dl -size -1k -exec rm -f {} \; # 删除下载不完整的小文件
+        echo "::endgroup::"
+
+    - name: 6. 编译固件 (Compile Firmware)
+      id: compile
+      run: |
+        cd immortalwrt
+        echo "::group::开始编译固件 (单线程, 详细日志模式)"
+        make -j1 V=s
+        if [ $? -ne 0 ]; then
+          echo "::error::编译失败！请检查上述详细日志以确定问题。"
+          exit 1
+        fi
+        echo "::endgroup::"
+        
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "FIRMWARE_PATH=$(ls bin/targets/msm89xx/msm8916/*-sysupgrade.bin 2>/dev/null | head -n 1)" >> $GITHUB_ENV
+
+    - name: 7. SSH 远程调试 (按需触发)
+      if: (failure() || success()) && inputs.ssh_action == 'true'
+      uses: mxschmitt/action-tmate@v3
+      with:
+        working-directory: ${{ steps.source.outputs.SOURCE_DIR }} # 直接进入源码目录
+
+    - name: 8. 整理并上传产物 (Upload Artifacts)
+      if: success()
+      run: |
+        echo "::group::整理并上传固件"
+        cd immortalwrt
+        mkdir -p release
+        if [ -n "${{ env.FIRMWARE_PATH }}" ]; then
+          cp ${{ env.FIRMWARE_PATH }} release/
+          cp bin/targets/msm89xx/msm8916/openwrt-msm89xx-msm8916-generic-squashfs-factory.img release/
+          cp .config release/config.buildinfo
+          sha256sum release/* > release/sha256sums.txt
+          echo "FIRMWARE_RELEASE_DIR=immortalwrt/release" >> $GITHUB_ENV
+        else
+          echo "::error::编译成功但未找到 sysupgrade 文件！"
+          find bin/targets -type f
+          exit 1
+        fi
+        echo "::endgroup::"
+
+    - name: 上传到 Actions Artifacts
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ImmortalWrt_Firmware_msm8916_${{ github.run_id }}
+        path: ${{ env.FIRMWARE_RELEASE_DIR }}
