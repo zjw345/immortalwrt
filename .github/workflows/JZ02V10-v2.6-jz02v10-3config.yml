@@ -95,7 +95,7 @@ jobs:
         echo "::endgroup::"
 
         echo "::group::标准化配置并下载源码"
-        make defconfig
+        yes '' | make oldconfig
         
         make download -j$(nproc)
         find dl -size -1k -exec rm -f {} \;
